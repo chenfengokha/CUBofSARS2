@@ -3,7 +3,6 @@ library(Biostrings)
 library(seqRFLP)
 hadvfile <- system("ls ~/virus/earlygene/hadv/mut-hadv-*.fasta",intern = T) 
 cdsinffile <- system("ls ~/virus/earlygene/hadv/infhadv*",intern = T)
-load("~/Rfunction/wiforite.Rdata")
 load("~/codonpaper/review/codon.Rdata")
 
 n=6
