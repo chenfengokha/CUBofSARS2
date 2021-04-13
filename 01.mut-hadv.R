@@ -97,10 +97,7 @@ Dp <- mclapply(mc.cores = 20,1:length(hadv),function(y){
       as.data.frame() %>%
       group_by(virusid,gene,type,len) %>%
       dplyr::summarize(Dp = prod(Di)^(1/length(Di)))
-    
    
-    Dp$ite <- ite$ite[match(as.vector(Dp$gene),as.vector(ite$gene))]
-    
   } else {
     Dp <- data.frame(virusid="999",gene="999",type="999",Dp=999,len=999)
   }
