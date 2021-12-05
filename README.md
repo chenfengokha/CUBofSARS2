@@ -1,4 +1,4 @@
 # CUBofSARS2
 
-This repository contains core codes for our paper on “A systematic analysis of coevolution between respiratory viruses and humans elucidates distinct evolutionary patterns of codon usage bias between weakly and strongly virulent coronaviruses”.
+This repository contains core codes for our paper on “Distinct codon usage bias evolutionary patterns between weakly and strongly virulent respiratory viruses”.
 
