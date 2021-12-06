@@ -1,7 +1,7 @@
 library(seqinr)
 library(Biostrings)
 library(seqRFLP)
-##
+##nul
 from=c("A","T","G","C","a","g","t","c","N","n")
 to  =c("T","A","C","G","t","c","a","g","N","n")
 names(to)=from
@@ -17,7 +17,6 @@ revcom <- function(x){
 hadvfile <- system("ls ~/virus/earlygene/hadv/mut-hadv-*.fasta",intern = T) 
 cdsinffile <- system("ls ~/virus/earlygene/hadv/infhadv*",intern = T)
 codon <- read.table("/mnt/data4/disk/chenfeng/codonpaper/expriment/fcs/codon.txt",header = TRUE,stringsAsFactors = F)
-
 
 n=7
 hadv <- readDNAStringSet(hadvfile[n]) 
@@ -144,16 +143,12 @@ load("~/virus/earlygene/hadv/Dp.hadvG.Rdata")
 vg <- Dp %>% cbind(data.frame(virusname="HAdV-G"))
 
 ##merge data
-#ful <- (rbind(va,vb,vc,vd,ve,vf,vg) %>% dplyr::filter(len>200))$virusid %>% unique()
-
-
 genehadv <- rbind(va,vb,vc,vd,ve,vf,vg) %>% dplyr::filter(type=="eachgene") 
 load("~/virus/earlygene/hadv/hadvgene.Rdata")
 genehadv$type2 <- hadvgene$type[match(as.vector(genehadv$gene),hadvgene$gene)]
 
-
 ##picture and test
-##1)violin
+##1)violin E,I,L
 genehadv$virusname <- as.vector(genehadv$virusname)
 
 lapply(1:length(unique(genehadv$virusname)),function(x){
@@ -168,84 +163,15 @@ lapply(1:length(unique(genehadv$virusname)),function(x){
              mE=mean(E$Dp),mI=mean(I$Dp),mL=mean(L$Dp),medE=median(E$Dp),medI=median(I$Dp),medL=median(L$Dp))
 }) %>% rbind.fill()
 
-
-
-# ##2)
-
-source("~/Rfunction/style.print.R")
-genehadv %>%
-  #dplyr::filter(type2!="I") %>%
-  ggplot(aes(type2,Dp,color=type2))+ 
-  geom_violin(scale = "width") +
-  geom_boxplot(width = 0.1, outlier.colour = NA) +
-  stat_summary(fun = 'mean', geom = 'point', shape = 18, colour = 'black')+
-  facet_wrap(~virusname)+
-  scale_y_continuous(limits = c(0.05,0.8),breaks = c(0.2,0.5,0.8))+
-  labs(y=expression(paste(italic(D)[P]," (virus/human)")),x= "Frequency")+
-  style.print()
-
-##2)violin
+##2)violin, E blongs to nonstructural gene; I and L belong to structural; U means unkonwn 
 genehadv <- genehadv %>% dplyr::filter(gene!="U")
 genehadv$type3 <- "nonstructure"
 genehadv$type3[c(which(substr(genehadv$gene,1,1)=="L"),which(genehadv$gene %in% c("IX","IVa2")))] <- "structure"
 
-
-
 lapply(1:length(unique(genehadv$virusname)),function(x){
   v <- unique(genehadv$virusname)[x]
-  a <- genehadv %>% dplyr::filter(virusname == v)
-  
+  a <- genehadv %>% dplyr::filter(virusname == v) 
   ns <- a %>% dplyr::filter(type3=="nonstructure")
-  s <- a %>% dplyr::filter(type3=="structure")
-  
-  
+  s <- a %>% dplyr::filter(type3=="structure")  
   data.frame(v,p=wilcox.test(ns$Dp,s$Dp)$p.value,mns=mean(ns$Dp),ms=mean(s$Dp),medns=median(ns$Dp),meds=median(s$Dp),stringsAsFactors = F)
 }) %>% rbind.fill()
-
-##test
-1-binom.test(8, 10, p = 0.5,
-           alternative = "less",
-           conf.level = 0.99)$p.value
-
-
-
-
-
-source("~/Rfunction/style.print.R")
-genehadv %>%
-  #dplyr::filter(type2!="I") %>%
-  ggplot(aes(type3,Dp,color=type3))+ 
-  geom_violin(scale = "width") +
-  geom_boxplot(width = 0.1, outlier.colour = NA) +
-  stat_summary(fun = 'mean', geom = 'point', shape = 18, colour = 'black')+
-  facet_wrap(~virusname)+
-  scale_y_continuous(limits = c(0.05,0.72),breaks = c(0.2,0.4,0.6))+
-  labs(y=expression(paste(italic(D)[P]," (virus/human)")),x= "")+
-  style.print()
-##test1
-genehadv %>% group_by(virusname,gene,type2) %>% dplyr::summarize(n=length(Dp)) %>% as.data.frame() %>% arrange(type2) %>% arrange(desc(virusname))
-
-##length of each genes
-
-ref <- system("ls ~/virus/earlygene/hadv/ref*",intern = T)
-mclapply(mc.cores = 7,1:7,function(x){
-  a <- readDNAStringSet(ref[x])
-  
-  
-  mclapply(mc.cores = 2,1:length(a),function(y){
-    
-    
-    gene <- strsplit(strsplit(names(a[y])," ")[[1]][1],",")[[1]][2]
-    leng <- width(a)[y]
-    data.frame(gene,leng,stringsAsFactors = F)
-    
-  }) %>% rbind.fill() %>% group_by(gene) %>% dplyr::filter(leng==max(leng)) %>%
-    cbind(virus=strsplit(ref[x],"/")[[1]][9])
-  
-  
-})%>% rbind.fill()
-
-
-
-
-
