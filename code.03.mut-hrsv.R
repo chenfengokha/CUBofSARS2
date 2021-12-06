@@ -16,7 +16,6 @@ inffile <- system("ls ~/virus/earlygene/hrsv/inf*",intern = T)
 codon <- read.table("/mnt/data4/disk/chenfeng/codonpaper/expriment/fcs/codon.txt",header = TRUE,stringsAsFactors = F)
 
 n=2
-
 myseq <- readDNAStringSet(seqfile[n]) 
 cdsinf <- read.csv(inffile[n],stringsAsFactors = F,sep = "\t",header = F)
 
@@ -80,7 +79,6 @@ Dp <- mclapply(mc.cores = 60,1:length(myseq),function(y){
       }
       fin
     }) %>% rbind.fill() %>% dplyr::filter(aa!=99)
-    
     
     if(nrow(yfre)==0){
       dd <- data.frame(virusid="999",gene="999",type="999",Dp=999,len=999,stringsAsFactors = F)
@@ -149,24 +147,3 @@ lapply(1:length(unique(gene$virusname)),function(x){
   n <- a %>% dplyr::filter(type2=="Non-structural")
   data.frame(v,p=wilcox.test(s$Dp,n$Dp)$p.value,ms=mean(s$Dp),mn=mean(n$Dp))
 }) %>% rbind.fill()
-
-## test1
-gene %>% group_by(virusname,gene,type2) %>% dplyr::summarize(n=length(Dp)) %>% as.data.frame() %>% arrange(type2) %>% arrange(desc(virusname))
-##test2
-ref <- system("ls ~/virus/earlygene/hrsv/ref*",intern = T)
-mclapply(mc.cores = 2,1:2,function(x){
-  a <- readDNAStringSet(ref[x])
-  
-  
-  mclapply(mc.cores = 2,1:length(a),function(y){
-    
-    
-    gene <- names(a[y])
-    leng <- width(a)[y]
-    data.frame(gene,leng,stringsAsFactors = F)
-    
-  }) %>% rbind.fill() %>% group_by(gene) %>% dplyr::filter(leng==max(leng)) %>%
-    cbind(virus=strsplit(ref[x],"/")[[1]][9])
-  
-  
-})%>% rbind.fill()
