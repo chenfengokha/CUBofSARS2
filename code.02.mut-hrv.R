@@ -11,11 +11,11 @@ revcom <- function(x){
   rev_complementary_DNA <- paste(rev_complementary,collapse = "")
   rev_complementary_DNA
 }
+
 seqfile <- system("ls ~/virus/earlygene/hrv/mut*.fasta",intern = T) 
 inffile <- system("ls ~/virus/earlygene/hrv/inf*",intern = T)
 codon <- read.table("/mnt/data4/disk/chenfeng/codonpaper/expriment/fcs/codon.txt",header = TRUE,stringsAsFactors = F)
 n=3
-
 myseq <- readDNAStringSet(seqfile[n]) 
 cdsinf <- read.csv(inffile[n],stringsAsFactors = F,sep = "\t",header = F)
 
@@ -27,7 +27,6 @@ Dp <- mclapply(mc.cores = 60,1:length(myseq),function(y){
   inftmp <- cdsinf %>% dplyr::filter(V1==query)
   if(nrow(inftmp)>0){
     yfre <- lapply(1:nrow(inftmp),function(z){
-      
       gene <- strsplit(inftmp[z,2],",")[[1]]
       virusid <- inftmp[z,]$V1
       myseq <- as.character(substr(as.character(a),inftmp[z,7],inftmp[z,8]))
@@ -123,8 +122,6 @@ seqfile[n]
 save(Dp,file = "~/virus/earlygene/hrv/Dp.HRV-C.Rdata")
 
 ##load data
-
-#load("~/virus/earlygene/hrv/Dp.HRV.Rdata")
 load("~/virus/earlygene/hrv/Dp.HRV-A.Rdata")
 va <- Dp %>% cbind(data.frame(virusname="HRV-A"))
 load("~/virus/earlygene/hrv/Dp.HRV-B.Rdata")
@@ -133,14 +130,11 @@ load("~/virus/earlygene/hrv/Dp.HRV-C.Rdata")
 vc <- Dp %>% cbind(data.frame(virusname="HRV-C"))
 
 ##merge data
-#ful <- (rbind(va,vb,vc,vd,ve,vf,vg) %>% dplyr::filter(len>200))$virusid %>% unique()
-
-
 gene <- rbind(va,vb,vc) %>% dplyr::filter(type=="eachgene") %>% separate(gene,c("gene","type2"),sep = "_")
 gene$type2[which(gene$type2 == "Non-tructure")] <- "Non-structure"
 source("~/Rfunction/style.print.R")
 
-####cumulative distribution and test
+####plot and test
 
 gene %>% 
   ggplot(aes(x=type2,y=Dp,color=type2))+
@@ -160,24 +154,3 @@ lapply(1:length(unique(gene$virusname)),function(x){
   n <- a %>% dplyr::filter(type2=="Non-structure")
   data.frame(v,p=wilcox.test(s$Dp,n$Dp)$p.value,ms=mean(s$Dp),mn=mean(n$Dp))
 }) %>% rbind.fill()
-
-## test1
-gene %>% group_by(virusname,gene,type2) %>% dplyr::summarize(n=length(Dp)) %>% as.data.frame() %>% arrange(type2) %>% arrange(desc(virusname))
-##test2
-ref <- system("ls ~/virus/earlygene/hrv/ref*",intern = T)
-mclapply(mc.cores = 3,1:3,function(x){
-  a <- readDNAStringSet(ref[x])
-  
-  
-  mclapply(mc.cores = 2,1:length(a),function(y){
-    
-    
-    gene <- names(a[y])
-    leng <- width(a)[y]
-    data.frame(gene,leng,stringsAsFactors = F)
-    
-  }) %>% rbind.fill() %>% group_by(gene) %>% dplyr::filter(leng==max(leng)) %>%
-    cbind(virus=strsplit(ref[x],"/")[[1]][9])
-  
-  
-})%>% rbind.fill()
