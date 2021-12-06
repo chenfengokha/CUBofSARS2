@@ -17,10 +17,8 @@ inffile <- system("ls ~/virus/earlygene/coronavirus/inf*",intern = T)
 codon <- read.table("/mnt/data4/disk/chenfeng/codonpaper/expriment/fcs/codon.txt",header = TRUE,stringsAsFactors = F)
 
 n=2
-
 virseq <- readDNAStringSet(seqfile[n]) 
 cdsinf <- read.csv(inffile[n],stringsAsFactors = F,sep = "\t",header = F)
-
 load("~/codonpaper/code and data/1_2.xijofhost.finall.Rdata")
 hum <- xijofhost %>% dplyr::filter(special =="Homo_sapiens")
 Dp <- mclapply(mc.cores = 50,1:length(virseq),function(y){
@@ -154,13 +152,12 @@ load("/mnt/data/home/chenfeng/virus/earlygene/coronavirus/Dp.SARS1.Rdata")
 vg <- Dp %>% cbind(data.frame(virusname="SARS"))
 gg <- vg %>% dplyr::filter(type=="all") %>% arrange(desc(len))
 gg <- gg %>% dplyr::filter(len>20000)
-##ful length Dp ~ time
 
+##plot and test
+#each genome
 ful <- rbind(aa,bb,cc,dd,ee,ff,gg)
-
 source("~/Rfunction/style.print.R")
 ful$virusname <- factor(ful$virusname,levels = c("HKU1","NL63","OC43","SARS2","229E","MERS","SARS"))
-
 ful %>% 
   ggplot(aes(x=virusname,y=Dp))+
   geom_violin(scale = "width")+
@@ -169,7 +166,6 @@ ful %>%
   labs(x="",y=expression(paste(italic(D)[P]," (virus/human)")))+
   #scale_y_continuous(limits = c(0.3,0.59),breaks = c(0.3,0.4,0.5,0.6))+
   style.print()
-
 pairwise.wilcox.test(ful$Dp, ful$virusname)
 
 ful$type1 <- "nonill"
@@ -182,16 +178,10 @@ ful %>% ggplot(aes(x=type1,y=Dp))+
   labs(x="1",y=expression(paste(italic(D)[P]," (virus/human)")))+
   #scale_y_continuous(limits = c(0.3,0.5),breaks = c(0.3,0.4,0.5))+
   style.print()
-
 wilcox.test(ful$Dp[which(ful$type1=="nonill")],ful$Dp[which(ful$type1=="ill")])$p.value
-
-
-
-
+# each gene
 gene <- rbind(va,vb,vc,vd,ve,vf,vg) %>% dplyr::filter(type=="eachgene")
-
 gene %>% separate("gene",c("a","b"),"_") -> gene
-
 gene$b[which(gene$b=="Non-structure")] <- "Nonstructure"
 gene$virusname <- factor(gene$virusname,levels = c("HKU1","NL63","OC43","SARS2","229E","MERS","SARS"))
 gene %>% 
@@ -211,37 +201,3 @@ lapply(1:length(unique(gene$virusname)),function(x){
   n <- a %>% dplyr::filter(b=="Nonstructure")
   data.frame(v,p=wilcox.test(s$Dp,n$Dp)$p.value,ms=mean(s$Dp),mn=mean(n$Dp))
 }) %>% rbind.fill()
-
-
-
-
-## test1
-t1 <- gene %>% group_by(virusname,a,b) %>% dplyr::summarize(n=length(Dp)) %>% as.data.frame() %>% arrange(b) %>% arrange(desc(virusname))
-##test2
-ref <- system("ls ~/virus/earlygene/coronavirus/ref*",intern = T)
-t2 <- mclapply(mc.cores = length(ref),1:length(ref),function(x){
-  a <- readDNAStringSet(ref[x])
-  
-  
-  mclapply(mc.cores = 2,1:length(a),function(y){
-    
-    
-    gene <- names(a[y])
-    leng <- width(a)[y]
-    data.frame(gene,leng,stringsAsFactors = F)
-    
-  }) %>% rbind.fill() %>% group_by(gene) %>% dplyr::filter(leng==max(leng)) %>%
-    cbind(virus=strsplit(ref[x],"/")[[1]][9])
-  
-  
-})%>% rbind.fill()
-
-
-
-
-
-
-
-
-
-
